@@ -1,19 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-export interface Video {
-  id: string;
-  thumbnail: string;
-  title: string;
-  channel: {
-    name: string;
-    avatar: string;
-  };
-  views: string;
-  uploadedAt: string;
-  duration: string;
-}
+import { Video } from "@/data/videos";
 
 interface VideoCardProps {
   video: Video;
