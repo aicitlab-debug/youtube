@@ -1,12 +1,18 @@
-import { Search, Mic, Video, Bell, Menu } from "lucide-react";
+import { Search, Mic, Video, Bell, Menu, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
   onMenuClick: () => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
-const Header = ({ onMenuClick }: HeaderProps) => {
+const Header = ({ onMenuClick, searchQuery, onSearchChange }: HeaderProps) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 h-14 bg-background z-50 flex items-center justify-between px-4">
       {/* Left section */}
@@ -30,21 +36,32 @@ const Header = ({ onMenuClick }: HeaderProps) => {
       </div>
 
       {/* Center section - Search */}
-      <div className="flex items-center flex-1 max-w-2xl mx-4">
-        <div className="flex flex-1">
+      <form onSubmit={handleSubmit} className="flex items-center flex-1 max-w-2xl mx-4">
+        <div className="flex flex-1 relative">
           <input
             type="text"
             placeholder="Search"
-            className="search-input flex-1"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="search-input flex-1 pr-8"
           />
-          <button className="search-button">
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => onSearchChange("")}
+              className="absolute right-14 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded-full"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
+          )}
+          <button type="submit" className="search-button">
             <Search className="h-5 w-5" />
           </button>
         </div>
         <Button variant="ghost" size="icon" className="rounded-full ml-2">
           <Mic className="h-5 w-5" />
         </Button>
-      </div>
+      </form>
 
       {/* Right section */}
       <div className="flex items-center gap-1">
