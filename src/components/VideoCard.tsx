@@ -1,15 +1,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Video } from "@/data/videos";
+import { YouTubeVideo } from "@/services/youtubeApi";
 
 interface VideoCardProps {
-  video: Video;
+  video: YouTubeVideo;
 }
 
 const VideoCard = ({ video }: VideoCardProps) => {
+  const handleClick = () => {
+    window.open(`https://www.youtube.com/watch?v=${video.id}`, "_blank");
+  };
+
   return (
-    <div className="video-card cursor-pointer group">
+    <div className="video-card cursor-pointer group" onClick={handleClick}>
       {/* Thumbnail */}
       <div className="relative mb-3">
         <img
@@ -45,6 +49,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
           variant="ghost"
           size="icon"
           className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+          onClick={(e) => e.stopPropagation()}
         >
           <MoreVertical className="h-4 w-4" />
         </Button>
