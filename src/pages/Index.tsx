@@ -1,23 +1,59 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import CategoryChips from "@/components/CategoryChips";
 import VideoGrid from "@/components/VideoGrid";
-import { videos } from "@/data/videos";
+import { getPopularVideos, searchYouTubeVideos, YouTubeVideo } from "@/services/youtubeApi";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  const filteredVideos = useMemo(() => {
-    if (!searchQuery.trim()) return videos;
-    
-    const query = searchQuery.toLowerCase();
-    return videos.filter(
-      (video) =>
-        video.title.toLowerCase().includes(query) ||
-        video.channel.name.toLowerCase().includes(query)
-    );
+  // Load popular videos on mount
+  useEffect(() => {
+    const loadVideos = async () => {
+      setLoading(true);
+      const popularVideos = await getPopularVideos(16);
+      setVideos(popularVideos);
+      setLoading(false);
+    };
+    loadVideos();
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    if (!searchQuery.trim()) {
+      // Reset to popular videos when search is cleared
+      const loadPopular = async () => {
+        setLoading(true);
+        const popularVideos = await getPopularVideos(16);
+        setVideos(popularVideos);
+        setLoading(false);
+      };
+      loadPopular();
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      setLoading(true);
+      const results = await searchYouTubeVideos(searchQuery, 16);
+      setVideos(results);
+      setLoading(false);
+    }, 500);
+
+    setSearchTimeout(timeout);
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
   }, [searchQuery]);
 
   return (
@@ -36,7 +72,13 @@ const Index = () => {
       >
         <div className="px-6">
           <CategoryChips />
-          <VideoGrid videos={filteredVideos} searchQuery={searchQuery} />
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <VideoGrid videos={videos} searchQuery={searchQuery} />
+          )}
         </div>
       </main>
     </div>

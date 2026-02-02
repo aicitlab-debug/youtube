@@ -1,9 +1,9 @@
 import VideoCard from "./VideoCard";
-import { Video } from "@/data/videos";
+import { YouTubeVideo } from "@/services/youtubeApi";
 import { SearchX } from "lucide-react";
 
 interface VideoGridProps {
-  videos: Video[];
+  videos: YouTubeVideo[];
   searchQuery: string;
 }
 
@@ -14,7 +14,7 @@ const VideoGrid = ({ videos, searchQuery }: VideoGridProps) => {
         <SearchX className="h-16 w-16 mb-4" />
         <h3 className="text-xl font-medium mb-2">No results found</h3>
         <p className="text-sm">
-          No videos match "{searchQuery}". Try different keywords.
+          {searchQuery ? `No videos match "${searchQuery}". Try different keywords.` : "No videos available."}
         </p>
       </div>
     );
