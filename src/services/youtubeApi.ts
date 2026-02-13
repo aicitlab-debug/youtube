@@ -46,8 +46,10 @@ interface YouTubeChannelDetails {
   };
 }
 
-const formatViewCount = (count: string): string => {
+const formatViewCount = (count: string | undefined): string => {
+  if (!count) return "0";
   const num = parseInt(count, 10);
+  if (isNaN(num)) return "0";
   if (num >= 1000000) {
     return `${(num / 1000000).toFixed(1)}M`;
   } else if (num >= 1000) {
@@ -222,7 +224,7 @@ export const getVideoDetails = async (videoId: string): Promise<YouTubeVideo | n
         name: item.snippet.channelTitle,
         avatar: channelAvatar,
       },
-      views: formatViewCount(item.statistics.viewCount),
+      views: formatViewCount(item.statistics?.viewCount),
       uploadedAt: formatUploadDate(item.snippet.publishedAt),
       duration: formatDuration(item.contentDetails.duration),
     };

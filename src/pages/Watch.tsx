@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import VideoCard from "@/components/VideoCard";
 import { getPopularVideos, YouTubeVideo, getVideoDetails } from "@/services/youtubeApi";
 import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Loader2 } from "lucide-react";
 
@@ -30,8 +29,13 @@ const Watch = () => {
     if (videoId) load();
   }, [videoId]);
 
+  const navigate = useNavigate();
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    if (query.trim()) {
+      navigate(`/?search=${encodeURIComponent(query)}`);
+    }
   };
 
   if (loading) {
