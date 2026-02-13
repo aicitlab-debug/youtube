@@ -23,7 +23,7 @@ const Watch = () => {
         getPopularVideos(12),
       ]);
       setVideo(details);
-      setRelatedVideos(popular.filter((v) => v.id !== videoId));
+      setRelatedVideos(popular.videos.filter((v) => v.id !== videoId));
       setLoading(false);
     };
     if (videoId) load();

@@ -14,6 +14,11 @@ export interface YouTubeVideo {
   duration: string;
 }
 
+export interface PaginatedResult {
+  videos: YouTubeVideo[];
+  nextPageToken?: string;
+}
+
 interface YouTubeSearchItem {
   id: { videoId: string };
   snippet: {
@@ -90,21 +95,23 @@ const formatUploadDate = (dateString: string): string => {
 
 export const searchYouTubeVideos = async (
   query: string = "",
-  maxResults: number = 12
-): Promise<YouTubeVideo[]> => {
+  maxResults: number = 12,
+  pageToken?: string
+): Promise<PaginatedResult> => {
   try {
-    // Search for videos
-    const searchUrl = `${YOUTUBE_API_BASE_URL}/search?part=snippet&type=video&maxResults=${maxResults}&q=${encodeURIComponent(
+    let searchUrl = `${YOUTUBE_API_BASE_URL}/search?part=snippet&type=video&maxResults=${maxResults}&q=${encodeURIComponent(
       query || "trending"
     )}&key=${YOUTUBE_API_KEY}`;
+    if (pageToken) searchUrl += `&pageToken=${pageToken}`;
     
     const searchResponse = await fetch(searchUrl);
     if (!searchResponse.ok) throw new Error("Failed to fetch videos");
     
     const searchData = await searchResponse.json();
     const items: YouTubeSearchItem[] = searchData.items || [];
+    const nextPageToken = searchData.nextPageToken;
     
-    if (items.length === 0) return [];
+    if (items.length === 0) return { videos: [], nextPageToken: undefined };
     
     // Get video details (duration, view count)
     const videoIds = items.map((item) => item.id.videoId).join(",");
@@ -133,7 +140,7 @@ export const searchYouTubeVideos = async (
       videoDetails.map((video) => [video.id, video])
     );
     
-    return items.map((item) => {
+    const videos = items.map((item) => {
       const details = videoDetailsMap.get(item.id.videoId);
       return {
         id: item.id.videoId,
@@ -149,23 +156,26 @@ export const searchYouTubeVideos = async (
         duration: details ? formatDuration(details.contentDetails.duration) : "0:00",
       };
     });
+    return { videos, nextPageToken };
   } catch (error) {
     console.error("Error fetching YouTube videos:", error);
-    return [];
+    return { videos: [], nextPageToken: undefined };
   }
 };
 
-export const getPopularVideos = async (maxResults: number = 12): Promise<YouTubeVideo[]> => {
+export const getPopularVideos = async (maxResults: number = 12, pageToken?: string): Promise<PaginatedResult> => {
   try {
-    const url = `${YOUTUBE_API_BASE_URL}/videos?part=snippet,contentDetails,statistics&chart=mostPopular&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`;
+    let url = `${YOUTUBE_API_BASE_URL}/videos?part=snippet,contentDetails,statistics&chart=mostPopular&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`;
+    if (pageToken) url += `&pageToken=${pageToken}`;
     
     const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch popular videos");
     
     const data = await response.json();
     const items = data.items || [];
+    const nextPageToken = data.nextPageToken;
     
-    if (items.length === 0) return [];
+    if (items.length === 0) return { videos: [], nextPageToken: undefined };
     
     const channelIds = [...new Set(items.map((item: any) => item.snippet.channelId))].join(",");
     const channelDetailsUrl = `${YOUTUBE_API_BASE_URL}/channels?part=snippet&id=${channelIds}&key=${YOUTUBE_API_KEY}`;
@@ -181,7 +191,7 @@ export const getPopularVideos = async (maxResults: number = 12): Promise<YouTube
       ])
     );
     
-    return items.map((item: any) => ({
+    const videos = items.map((item: any) => ({
       id: item.id,
       thumbnail: item.snippet.thumbnails.high.url,
       title: item.snippet.title,
@@ -190,13 +200,14 @@ export const getPopularVideos = async (maxResults: number = 12): Promise<YouTube
         name: item.snippet.channelTitle,
         avatar: channelAvatarMap.get(item.snippet.channelId) || "",
       },
-      views: formatViewCount(item.statistics.viewCount),
+      views: formatViewCount(item.statistics?.viewCount),
       uploadedAt: formatUploadDate(item.snippet.publishedAt),
       duration: formatDuration(item.contentDetails.duration),
     }));
+    return { videos, nextPageToken };
   } catch (error) {
     console.error("Error fetching popular videos:", error);
-    return [];
+    return { videos: [], nextPageToken: undefined };
   }
 };
 
