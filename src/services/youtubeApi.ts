@@ -165,7 +165,6 @@ export const getPopularVideos = async (maxResults: number = 12): Promise<YouTube
     
     if (items.length === 0) return [];
     
-    // Get channel avatars
     const channelIds = [...new Set(items.map((item: any) => item.snippet.channelId))].join(",");
     const channelDetailsUrl = `${YOUTUBE_API_BASE_URL}/channels?part=snippet&id=${channelIds}&key=${YOUTUBE_API_KEY}`;
     
@@ -196,5 +195,39 @@ export const getPopularVideos = async (maxResults: number = 12): Promise<YouTube
   } catch (error) {
     console.error("Error fetching popular videos:", error);
     return [];
+  }
+};
+
+export const getVideoDetails = async (videoId: string): Promise<YouTubeVideo | null> => {
+  try {
+    const url = `${YOUTUBE_API_BASE_URL}/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${YOUTUBE_API_KEY}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch video details");
+    
+    const data = await response.json();
+    const item = data.items?.[0];
+    if (!item) return null;
+
+    const channelUrl = `${YOUTUBE_API_BASE_URL}/channels?part=snippet&id=${item.snippet.channelId}&key=${YOUTUBE_API_KEY}`;
+    const channelRes = await fetch(channelUrl);
+    const channelData = await channelRes.json();
+    const channelAvatar = channelData.items?.[0]?.snippet?.thumbnails?.default?.url || "";
+
+    return {
+      id: item.id,
+      thumbnail: item.snippet.thumbnails.high.url,
+      title: item.snippet.title,
+      channel: {
+        id: item.snippet.channelId,
+        name: item.snippet.channelTitle,
+        avatar: channelAvatar,
+      },
+      views: formatViewCount(item.statistics.viewCount),
+      uploadedAt: formatUploadDate(item.snippet.publishedAt),
+      duration: formatDuration(item.contentDetails.duration),
+    };
+  } catch (error) {
+    console.error("Error fetching video details:", error);
+    return null;
   }
 };

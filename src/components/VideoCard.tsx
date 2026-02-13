@@ -2,14 +2,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { YouTubeVideo } from "@/services/youtubeApi";
+import { useNavigate } from "react-router-dom";
 
 interface VideoCardProps {
   video: YouTubeVideo;
 }
 
 const VideoCard = ({ video }: VideoCardProps) => {
+  const navigate = useNavigate();
   const handleClick = () => {
-    window.open(`https://www.youtube.com/watch?v=${video.id}`, "_blank");
+    navigate(`/watch?v=${video.id}`);
   };
 
   return (
