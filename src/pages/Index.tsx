@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import CategoryChips from "@/components/CategoryChips";
 import VideoGrid from "@/components/VideoGrid";
+import BottomNav from "@/components/BottomNav";
 import { getPopularVideos, searchYouTubeVideos, YouTubeVideo } from "@/services/youtubeApi";
 import { Loader2 } from "lucide-react";
 
