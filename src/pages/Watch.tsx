@@ -70,9 +70,9 @@ const Watch = () => {
           {/* Video Info */}
           {video && (
             <div className="mt-3">
-              <h1 className="text-xl font-semibold leading-7">{video.title}</h1>
+              <h1 className="text-base md:text-xl font-semibold leading-6 md:leading-7">{video.title}</h1>
 
-              <div className="flex flex-wrap items-center justify-between mt-3 gap-3">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between mt-3 gap-3">
                 {/* Channel info */}
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
