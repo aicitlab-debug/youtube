@@ -82,11 +82,11 @@
   }
 
   .search-input {
-    @apply bg-input border border-border rounded-l-full px-4 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50;
+    @apply bg-input border border-border rounded-l-full px-3 md:px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 w-full min-w-0;
   }
 
   .search-button {
-    @apply bg-secondary hover:bg-accent px-6 py-2 rounded-r-full border border-l-0 border-border transition-colors;
+    @apply bg-secondary hover:bg-accent px-4 md:px-6 py-2 rounded-r-full border border-l-0 border-border transition-colors flex-shrink-0;
   }
 
   .chip {
@@ -106,5 +106,10 @@
   
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Safe area for notched phones */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
