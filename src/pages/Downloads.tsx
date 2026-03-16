@@ -54,7 +54,7 @@ const Downloads = () => {
               {downloads.map((video) => (
                 <div key={video.id} className="flex gap-3 group items-center">
                   <Link to={`/watch?v=${video.id}`} className="flex gap-3 flex-1 min-w-0">
-                    <div className="relative w-40 flex-shrink-0">
+                    <div className="relative w-32 sm:w-40 flex-shrink-0">
                       <img
                         src={video.thumbnail}
                         alt={video.title}

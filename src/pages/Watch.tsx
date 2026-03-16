@@ -69,7 +69,7 @@ const Watch = () => {
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} searchQuery={searchQuery} onSearchChange={handleSearch} />
       <Sidebar isOpen={sidebarOpen} />
 
-      <main className={`pt-14 transition-all duration-200 ${sidebarOpen ? "md:ml-60" : "md:ml-[72px]"} px-3 md:px-6 flex flex-col lg:flex-row gap-6 py-6 pb-20 md:pb-6`}>
+      <main className={`pt-14 transition-all duration-200 ${sidebarOpen ? "md:ml-60" : "md:ml-[72px]"} px-3 md:px-4 lg:px-6 flex flex-col lg:flex-row gap-4 lg:gap-6 py-4 pb-20 md:pb-6`}>
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Embedded Player */}
@@ -176,7 +176,7 @@ const Watch = () => {
         <div className="lg:w-[400px] flex-shrink-0 space-y-3">
           {relatedVideos.map((v) => (
             <Link key={v.id} to={`/watch?v=${v.id}`} className="flex gap-2 group">
-              <div className="relative w-40 flex-shrink-0">
+              <div className="relative w-32 sm:w-40 flex-shrink-0">
                 <img
                   src={v.thumbnail}
                   alt={v.title}
