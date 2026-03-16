@@ -244,3 +244,58 @@ export const getVideoDetails = async (videoId: string): Promise<YouTubeVideo | n
     return null;
   }
 };
+
+export const searchShorts = async (maxResults: number = 10, pageToken?: string): Promise<PaginatedResult> => {
+  try {
+    let url = `${YOUTUBE_API_BASE_URL}/search?part=snippet&type=video&videoDuration=short&maxResults=${maxResults}&q=shorts&key=${YOUTUBE_API_KEY}`;
+    if (pageToken) url += `&pageToken=${pageToken}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to fetch shorts");
+    const data = await res.json();
+    const items: YouTubeSearchItem[] = data.items || [];
+    const nextPageToken = data.nextPageToken;
+
+    if (items.length === 0) return { videos: [], nextPageToken: undefined };
+
+    const videoIds = items.map((i) => i.id.videoId).join(",");
+    const detailsRes = await fetch(`${YOUTUBE_API_BASE_URL}/videos?part=contentDetails,statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`);
+    const detailsData = await detailsRes.json();
+    const detailsMap = new Map((detailsData.items || []).map((v: YouTubeVideoDetails) => [v.id, v]));
+
+    // filter to truly short videos (<=60s)
+    const shorts = items.filter((item) => {
+      const d = detailsMap.get(item.id.videoId) as YouTubeVideoDetails | undefined;
+      if (!d) return false;
+      const match = d.contentDetails.duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      if (!match) return false;
+      const h = parseInt(match[1] || "0");
+      const m = parseInt(match[2] || "0");
+      const s = parseInt(match[3] || "0");
+      return h === 0 && m === 0 && s <= 60 || h === 0 && m === 1 && s === 0;
+    });
+
+    const channelIds = [...new Set(shorts.map((i) => i.snippet.channelId))].join(",");
+    const chRes = await fetch(`${YOUTUBE_API_BASE_URL}/channels?part=snippet&id=${channelIds}&key=${YOUTUBE_API_KEY}`);
+    const chData = await chRes.json();
+    const avatarMap = new Map((chData.items || []).map((c: YouTubeChannelDetails) => [c.id, c.snippet.thumbnails.default.url]));
+
+    const videos = shorts.map((item) => {
+      const d = detailsMap.get(item.id.videoId) as YouTubeVideoDetails;
+      return {
+        id: item.id.videoId,
+        thumbnail: item.snippet.thumbnails.high.url,
+        title: item.snippet.title,
+        channel: { id: item.snippet.channelId, name: item.snippet.channelTitle, avatar: (avatarMap.get(item.snippet.channelId) as string) || "" },
+        views: d ? formatViewCount(d.statistics.viewCount) : "0",
+        uploadedAt: formatUploadDate(item.snippet.publishedAt),
+        duration: d ? formatDuration(d.contentDetails.duration) : "0:00",
+      };
+    });
+
+    return { videos, nextPageToken };
+  } catch (error) {
+    console.error("Error fetching shorts:", error);
+    return { videos: [], nextPageToken: undefined };
+  }
+};

@@ -1,9 +1,9 @@
 import {
   Home,
-  Compass,
-  PlaySquare,
+  Clapperboard,
   Clock,
   ThumbsUp,
+  Download,
   Flame,
   ShoppingBag,
   Music2,
@@ -14,22 +14,24 @@ import {
   Trophy,
   Lightbulb,
   Shirt,
+  PlaySquare,
 } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface SidebarProps {
   isOpen: boolean;
 }
 
 const mainItems = [
-  { icon: Home, label: "Home", active: true },
-  { icon: Compass, label: "Explore" },
-  { icon: PlaySquare, label: "Subscriptions" },
+  { icon: Home, label: "Home", path: "/", activeOnly: true },
+  { icon: Clapperboard, label: "Shorts", path: "/shorts", activeOnly: true },
 ];
 
 const libraryItems = [
-  { icon: PlaySquare, label: "Library" },
-  { icon: Clock, label: "History" },
-  { icon: ThumbsUp, label: "Liked videos" },
+  { icon: PlaySquare, label: "Library", path: "/", activeOnly: false },
+  { icon: Clock, label: "History", path: "/history", activeOnly: true },
+  { icon: Download, label: "Downloads", path: "/downloads", activeOnly: true },
+  { icon: ThumbsUp, label: "Liked videos", path: "/", activeOnly: false },
 ];
 
 const exploreItems = [
@@ -46,20 +48,25 @@ const exploreItems = [
 ];
 
 const Sidebar = ({ isOpen }: SidebarProps) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   if (!isOpen) {
     return (
       <aside className="fixed left-0 top-14 bottom-0 w-[72px] bg-background overflow-y-auto scrollbar-hide py-2 hidden md:block">
-        {mainItems.map((item) => (
-          <div
-            key={item.label}
-            className={`flex flex-col items-center gap-1 py-4 px-1 cursor-pointer hover:bg-accent rounded-lg mx-1 ${
-              item.active ? "bg-accent" : ""
-            }`}
-          >
-            <item.icon className="h-5 w-5" />
-            <span className="text-[10px]">{item.label}</span>
-          </div>
-        ))}
+        {mainItems.map((item) => {
+          const isActive = item.activeOnly && location.pathname === item.path;
+          return (
+            <div
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              className={`flex flex-col items-center gap-1 py-4 px-1 cursor-pointer hover:bg-accent rounded-lg mx-1 ${isActive ? "bg-accent" : ""}`}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="text-[10px]">{item.label}</span>
+            </div>
+          );
+        })}
       </aside>
     );
   }
@@ -68,27 +75,38 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
     <aside className="fixed left-0 top-14 bottom-0 w-60 bg-background overflow-y-auto scrollbar-hide py-3 px-3 hidden md:block">
       {/* Main */}
       <div className="mb-3">
-        {mainItems.map((item) => (
-          <div
-            key={item.label}
-            className={`sidebar-item cursor-pointer ${item.active ? "active" : ""}`}
-          >
-            <item.icon className="h-5 w-5" />
-            <span className="text-sm">{item.label}</span>
-          </div>
-        ))}
+        {mainItems.map((item) => {
+          const isActive = item.activeOnly && location.pathname === item.path;
+          return (
+            <div
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              className={`sidebar-item cursor-pointer ${isActive ? "active" : ""}`}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="text-sm">{item.label}</span>
+            </div>
+          );
+        })}
       </div>
 
       <hr className="border-border my-3" />
 
       {/* Library */}
       <div className="mb-3">
-        {libraryItems.map((item) => (
-          <div key={item.label} className="sidebar-item cursor-pointer">
-            <item.icon className="h-5 w-5" />
-            <span className="text-sm">{item.label}</span>
-          </div>
-        ))}
+        {libraryItems.map((item) => {
+          const isActive = item.activeOnly && location.pathname === item.path;
+          return (
+            <div
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              className={`sidebar-item cursor-pointer ${isActive ? "active" : ""}`}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="text-sm">{item.label}</span>
+            </div>
+          );
+        })}
       </div>
 
       <hr className="border-border my-3" />

@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -38,8 +39,9 @@ const Index = () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
 
-    if (searchQuery.trim()) {
-      const { videos: moreVideos, nextPageToken } = await searchYouTubeVideos(searchQuery, 12, pageToken);
+    const query = searchQuery.trim() || (activeCategory !== "All" ? activeCategory : "");
+    if (query) {
+      const { videos: moreVideos, nextPageToken } = await searchYouTubeVideos(query, 12, pageToken);
       setVideos((prev) => [...prev, ...moreVideos]);
       setPageToken(nextPageToken);
       setHasMore(!!nextPageToken);
@@ -53,26 +55,13 @@ const Index = () => {
     setLoadingMore(false);
   };
 
-  // Load popular videos on mount
+  // Debounced search + category
   useEffect(() => {
-    const loadVideos = async () => {
-      setLoading(true);
-      const result = await getPopularVideos(16);
-      setVideos(result.videos);
-      setPageToken(result.nextPageToken);
-      setHasMore(!!result.nextPageToken);
-      setLoading(false);
-    };
-    loadVideos();
-  }, []);
+    if (searchTimeout) clearTimeout(searchTimeout);
 
-  // Debounced search
-  useEffect(() => {
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
+    const query = searchQuery.trim() || (activeCategory !== "All" ? activeCategory : "");
 
-    if (!searchQuery.trim()) {
+    if (!query) {
       const loadPopular = async () => {
         setLoading(true);
         const result = await getPopularVideos(16);
@@ -87,19 +76,16 @@ const Index = () => {
 
     const timeout = setTimeout(async () => {
       setLoading(true);
-      const result = await searchYouTubeVideos(searchQuery, 16);
+      const result = await searchYouTubeVideos(query, 16);
       setVideos(result.videos);
       setPageToken(result.nextPageToken);
       setHasMore(!!result.nextPageToken);
       setLoading(false);
-    }, 500);
+    }, searchQuery.trim() ? 500 : 0);
 
     setSearchTimeout(timeout);
-
-    return () => {
-      if (timeout) clearTimeout(timeout);
-    };
-  }, [searchQuery]);
+    return () => { if (timeout) clearTimeout(timeout); };
+  }, [searchQuery, activeCategory]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,7 +102,13 @@ const Index = () => {
         } ml-0 pb-16 md:pb-0`}
       >
         <div className="px-3 md:px-6">
-          <CategoryChips />
+          <CategoryChips
+            activeCategory={activeCategory}
+            onCategoryChange={(cat) => {
+              setActiveCategory(cat);
+              setSearchQuery("");
+            }}
+          />
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />

@@ -1,14 +1,26 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
+import BottomNav from "@/components/BottomNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getPopularVideos, YouTubeVideo, getVideoDetails } from "@/services/youtubeApi";
-import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Loader2 } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Loader2, MonitorDown, BookmarkPlus } from "lucide-react";
+import { addToHistory } from "@/hooks/useHistory";
+import { addToDownloads } from "@/hooks/useDownloads";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNavigate as useNav } from "react-router-dom";
 
 const Watch = () => {
   const [searchParams] = useSearchParams();
   const videoId = searchParams.get("v") || "";
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [video, setVideo] = useState<YouTubeVideo | null>(null);
   const [relatedVideos, setRelatedVideos] = useState<YouTubeVideo[]>([]);
@@ -23,6 +35,7 @@ const Watch = () => {
         getPopularVideos(12),
       ]);
       setVideo(details);
+      if (details) addToHistory(details);
       setRelatedVideos(popular.videos.filter((v) => v.id !== videoId));
       setLoading(false);
     };
@@ -30,6 +43,7 @@ const Watch = () => {
   }, [videoId]);
 
   const navigate = useNavigate();
+  const navTo = useNav();
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -41,7 +55,8 @@ const Watch = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header onMenuClick={() => {}} searchQuery={searchQuery} onSearchChange={handleSearch} />
+        <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} searchQuery={searchQuery} onSearchChange={handleSearch} />
+        <Sidebar isOpen={sidebarOpen} />
         <div className="flex items-center justify-center pt-14 h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -51,9 +66,10 @@ const Watch = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => {}} searchQuery={searchQuery} onSearchChange={handleSearch} />
+      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} searchQuery={searchQuery} onSearchChange={handleSearch} />
+      <Sidebar isOpen={sidebarOpen} />
 
-      <main className="pt-14 px-3 md:px-6 lg:px-24 flex flex-col lg:flex-row gap-6 py-6 pb-20 md:pb-6">
+      <main className={`pt-14 transition-all duration-200 ${sidebarOpen ? "md:ml-60" : "md:ml-[72px]"} px-3 md:px-6 flex flex-col lg:flex-row gap-6 py-6 pb-20 md:pb-6`}>
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Embedded Player */}
@@ -104,10 +120,33 @@ const Watch = () => {
                     <Share2 className="h-4 w-4" />
                     <span className="hidden sm:inline">Share</span>
                   </Button>
-                  <Button variant="secondary" size="sm" className="rounded-full gap-1.5 px-3 md:px-4 flex-shrink-0">
-                    <Download className="h-4 w-4" />
-                    <span className="hidden sm:inline">Download</span>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="secondary" size="sm" className="rounded-full gap-1.5 px-3 md:px-4 flex-shrink-0">
+                        <Download className="h-4 w-4" />
+                        <span className="hidden sm:inline">Download</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52">
+                      <DropdownMenuItem
+                        className="gap-2 cursor-pointer"
+                        onClick={() => window.open(`https://loader.to/api/button/?url=https://www.youtube.com/watch?v=${videoId}`, "_blank")}
+                      >
+                        <MonitorDown className="h-4 w-4" />
+                        Download to device
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="gap-2 cursor-pointer"
+                        onClick={() => {
+                          if (video) addToDownloads(video);
+                          navTo("/downloads");
+                        }}
+                      >
+                        <BookmarkPlus className="h-4 w-4" />
+                        Save to Fynzatube
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button variant="secondary" size="icon" className="rounded-full h-9 w-9 flex-shrink-0">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
@@ -160,6 +199,7 @@ const Watch = () => {
           ))}
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 };

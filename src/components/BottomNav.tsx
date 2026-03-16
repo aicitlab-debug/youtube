@@ -1,11 +1,11 @@
-import { Home, Compass, PlaySquare, Clock, User } from "lucide-react";
+import { Home, Clapperboard, Clock, User, PlaySquare } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const navItems = [
   { icon: Home, label: "Home", path: "/" },
-  { icon: Compass, label: "Explore", path: "/" },
-  { icon: PlaySquare, label: "Subscriptions", path: "/" },
-  { icon: Clock, label: "Library", path: "/" },
+  { icon: Clapperboard, label: "Shorts", path: "/shorts" },
+  { icon: PlaySquare, label: "Library", path: "/" },
+  { icon: Clock, label: "History", path: "/history" },
   { icon: User, label: "You", path: "/" },
 ];
 
@@ -17,7 +17,7 @@ const BottomNav = () => {
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border md:hidden">
       <div className="flex items-center justify-around py-1">
         {navItems.map((item) => {
-          const isActive = item.label === "Home" && location.pathname === "/";
+          const isActive = location.pathname === item.path;
           return (
             <button
               key={item.label}

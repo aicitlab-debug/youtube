@@ -1,6 +1,13 @@
-import { Search, Mic, Video, Bell, Menu, X } from "lucide-react";
+import { Search, Mic, Video, Bell, Menu, X, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,6 +16,8 @@ interface HeaderProps {
 }
 
 const Header = ({ onMenuClick, searchQuery, onSearchChange }: HeaderProps) => {
+  const { user, logout } = useAuth();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
   };
@@ -31,7 +40,7 @@ const Header = ({ onMenuClick, searchQuery, onSearchChange }: HeaderProps) => {
               <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
             </svg>
           </div>
-          <span className="text-xl font-semibold tracking-tight hidden sm:inline">YouTube</span>
+          <span className="text-xl font-semibold tracking-tight hidden sm:inline">FynzaTube</span>
         </a>
       </div>
 
@@ -71,10 +80,24 @@ const Header = ({ onMenuClick, searchQuery, onSearchChange }: HeaderProps) => {
         <Button variant="ghost" size="icon" className="rounded-full hidden sm:flex">
           <Bell className="h-5 w-5" />
         </Button>
-        <Avatar className="h-8 w-8 ml-1 md:ml-2 cursor-pointer">
-          <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" />
-          <AvatarFallback>U</AvatarFallback>
-        </Avatar>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Avatar className="h-8 w-8 ml-1 md:ml-2 cursor-pointer">
+              <AvatarImage src={user?.picture || ""} />
+              <AvatarFallback>{user?.name?.[0] ?? "U"}</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <div className="px-3 py-2 border-b border-border">
+              <p className="text-sm font-medium truncate">{user?.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            </div>
+            <DropdownMenuItem onClick={logout} className="gap-2 text-destructive focus:text-destructive cursor-pointer">
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
