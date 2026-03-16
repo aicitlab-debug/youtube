@@ -1,4 +1,11 @@
 import { YOUTUBE_API_KEY, YOUTUBE_API_BASE_URL } from "@/config/youtube";
+import { videos as staticVideos } from "@/data/videos";
+
+// Map static video data to YouTubeVideo shape for fallback use
+const staticFallback: YouTubeVideo[] = staticVideos.map((v) => ({
+  ...v,
+  channel: { ...v.channel, id: v.id },
+}));
 
 export interface YouTubeVideo {
   id: string;
@@ -111,7 +118,7 @@ export const searchYouTubeVideos = async (
     const items: YouTubeSearchItem[] = searchData.items || [];
     const nextPageToken = searchData.nextPageToken;
     
-    if (items.length === 0) return { videos: [], nextPageToken: undefined };
+    if (items.length === 0) return { videos: staticFallback, nextPageToken: undefined };
     
     // Get video details (duration, view count)
     const videoIds = items.map((item) => item.id.videoId).join(",");
@@ -159,7 +166,7 @@ export const searchYouTubeVideos = async (
     return { videos, nextPageToken };
   } catch (error) {
     console.error("Error fetching YouTube videos:", error);
-    return { videos: [], nextPageToken: undefined };
+    return { videos: staticFallback, nextPageToken: undefined };
   }
 };
 
@@ -175,7 +182,7 @@ export const getPopularVideos = async (maxResults: number = 12, pageToken?: stri
     const items = data.items || [];
     const nextPageToken = data.nextPageToken;
     
-    if (items.length === 0) return { videos: [], nextPageToken: undefined };
+    if (items.length === 0) return { videos: staticFallback, nextPageToken: undefined };
     
     const channelIds = [...new Set(items.map((item: any) => item.snippet.channelId))].join(",");
     const channelDetailsUrl = `${YOUTUBE_API_BASE_URL}/channels?part=snippet&id=${channelIds}&key=${YOUTUBE_API_KEY}`;
@@ -207,7 +214,7 @@ export const getPopularVideos = async (maxResults: number = 12, pageToken?: stri
     return { videos, nextPageToken };
   } catch (error) {
     console.error("Error fetching popular videos:", error);
-    return { videos: [], nextPageToken: undefined };
+    return { videos: staticFallback, nextPageToken: undefined };
   }
 };
 
