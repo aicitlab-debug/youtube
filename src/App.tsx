@@ -16,7 +16,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const GOOGLE_CLIENT_ID = "825439321108-si8ogs7sa1fqn66ptku8bk1rtkhnhchc.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "825439321108-a3hbh07q9375ujdnshmkect5jp39vq6k.apps.googleusercontent.com";
 
 const App = () => (
   <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

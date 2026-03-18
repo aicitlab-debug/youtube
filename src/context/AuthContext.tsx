@@ -1,44 +1,54 @@
-import { createContext, useContext, useState, ReactNode } from "react";
-
-export interface AuthUser {
-  name: string;
-  email: string;
-  picture: string;
-}
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "../lib/supabase";
+import { User } from "@supabase/supabase-js";
 
 interface AuthContextType {
-  user: AuthUser | null;
-  login: (user: AuthUser) => void;
-  logout: () => void;
+  user: User | null;
+  loading: boolean;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: () => {},
-  logout: () => {},
+  loading: true,
+  signOut: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    const stored = localStorage.getItem("auth_user");
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (u: AuthUser) => {
-    setUser(u);
-    localStorage.setItem("auth_user", JSON.stringify(u));
-  };
+  useEffect(() => {
+    // Check initial session
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setLoading(false);
+    };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("auth_user");
+    checkUser();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => useContext(AuthContext);
+

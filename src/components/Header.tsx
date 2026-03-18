@@ -16,7 +16,9 @@ interface HeaderProps {
 }
 
 const Header = ({ onMenuClick, searchQuery, onSearchChange }: HeaderProps) => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || "User";
+  const userAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,22 +85,23 @@ const Header = ({ onMenuClick, searchQuery, onSearchChange }: HeaderProps) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="h-8 w-8 ml-1 cursor-pointer">
-              <AvatarImage src={user?.picture || ""} />
-              <AvatarFallback>{user?.name?.[0] ?? "U"}</AvatarFallback>
+              <AvatarImage src={userAvatar} />
+              <AvatarFallback>{userName[0] ?? "U"}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <div className="px-3 py-2 border-b border-border">
-              <p className="text-sm font-medium truncate">{user?.name}</p>
+              <p className="text-sm font-medium truncate">{userName}</p>
               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
-            <DropdownMenuItem onClick={logout} className="gap-2 text-destructive focus:text-destructive cursor-pointer">
+            <DropdownMenuItem onClick={signOut} className="gap-2 text-destructive focus:text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
     </header>
   );
 };
